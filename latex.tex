@@ -1,0 +1,55 @@
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{geometry}
+\geometry{a4paper, margin=1in}
+\usepackage{amsmath}
+\usepackage{booktabs}
+
+
+\begin{document}
+
+\begin{center}
+{\Large \textbf{Leveraged Multi-Strategy Ensemble Trading System}}\\[0.5em]
+\end{center}
+
+\section{Methodology Overview}
+The \texttt{CombinedStrategy} is an ensemble quantitative model designed to provide diversified exposure through three distinct sub-strategies: Defensive Adaptive Asset Allocation (DAA), Kalman-based Pairs Trading, and a static Gold anchor. The model utilizes a hierarchical leverage structure to enhance returns while maintaining defensive guardrails.
+
+\section{Core Components}
+
+\subsection{Defensive Adaptive Asset Allocation (DAA)}
+The DAA component serves as the primary growth engine. It utilizes a "Canary" mechanism to detect regime shifts.
+\begin{itemize}
+    \item \textbf{Canary Assets:} VWO (Emerging Markets) and BND (Total Bond Market).
+    \author \textbf{Momentum Scoring:} Assets are ranked using a weighted momentum formula:
+    \begin{equation}
+    12\left(\frac{P_t}{P_{t-22}} - 1\right) + 4\left(\frac{P_t}{P_{t-63}} - 1\right) + 2\left(\frac{P_t}{P_{t-126}} - 1\right) + \left(\frac{P_t}{P_{t-252}} - 1\right)
+    \end{equation}
+    \item \textbf{Defensive Logic:} If all canary assets exhibit negative momentum, 100\% of the DAA slice moves to IEF (Intermediate Treasuries).
+\end{itemize}
+
+\subsection{Statistical Arbitrage (Pairs Trading)}
+The strategy identifies price dislocations between correlated assets using a state-space model.
+\begin{itemize}
+    \item \textbf{Kalman Filter:} Dynamically estimates the hedge ratio $\beta$ and intercept $\alpha$ for the linear relationship $y_t = \beta x_t + \alpha + \epsilon_t$.
+    \item \textbf{Z-Score Entry:} Trades are signaled when the residual $\epsilon_t$ deviates significantly from its moving standard deviation:
+    \begin{equation}
+    Z = \frac{\text{spread} - \mu_{\text{spread}}}{\sigma_{\text{spread}}}
+    \end{equation}
+\end{itemize}
+
+\section{Portfolio Construction}
+The portfolio is rebalanced monthly for DAA and daily for Gold. Leverage is applied at the sub-strategy level.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llll@{}}
+\toprule
+\textbf{Component} & \textbf{Allocation} & \textbf{Leverage} & \textbf{Total Exposure} \\ \midrule
+Gold Anchor        & 20\%                & 1.00x             & 20\%                   \\
+DAA Momentum       & 55\%                & 1.45x             & 79.75\%                \\
+Pairs Trading      & 25\%                & 1.95x             & 48.75\%                \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\end{document}
